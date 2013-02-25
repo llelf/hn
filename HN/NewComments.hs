@@ -1,4 +1,4 @@
-{-# LANGUAGE Arrows, NoMonomorphismRestriction, UnicodeSyntax #-}
+{-# LANGUAGE Arrows, NoMonomorphismRestriction, TupleSections, UnicodeSyntax #-}
 
 module HN.NewComments (NCPage(..),Comment(..),runX,parse) where
 
@@ -15,7 +15,8 @@ import Data.List hiding (span)
 import Control.Monad
 import Data.Time
 
---import Text.Pandoc.Definition
+import Text.Pandoc
+
 
 xpath = getXPathTrees
 
@@ -31,8 +32,8 @@ s1 = "Garageband is the app"
 s2 = "Reminds me of the Joel"
 
 showSome substr (NCPage pagecs _) = do putStrLn $ show (length cs) ++ " comments"
-                                       putStrLn $ cText $ head cs
-    where cs = filter ((substr `isInfixOf`) . cText) pagecs
+                                       putStrLn $ commentToText $ head cs
+    where cs = filter ((substr `isInfixOf`) . commentToText) $ pagecs
 
 -- sh' file s = do p <- pp file
 --                showSome s p
@@ -63,10 +64,17 @@ data Voted = Normal | Downvoted | Dead
 data AgoUnit = AgoM | AgoH | AgoD
 
 data Comment = Comment { cUser :: String, cId :: ID,
-                         cParent :: ID, cStory :: ID, cText :: String,
+                         cParent :: ID, cStory :: ID, cText :: [Block],
                          cTime :: UTCTime,
                          cVoted :: Voted }
                deriving Show
+
+
+commentToPandoc (Comment user _ _ _ text time _) = Pandoc (Meta [] [] []) text
+
+commentToText :: Comment -> String
+commentToText = writeMarkdown def . commentToPandoc
+
 
 -- instance Show Comment where
 --     show c = (cUser c) ++ ":<" ++ take 15 (head $ cText c) ++ "..>"
@@ -82,33 +90,39 @@ parseAgo s now | (sn : q : "ago" : _) <- words s = addUTCTime (negate $ fromInte
 
 
 -- span>font>p>a
-commentText :: ArrowXml cat => cat XmlTree [String]
-commentText = listA $ getChildren >>> this <+> getChildren
-              >>> getXPathTrees "span/font" /> par
-    where par = ((getText
-                  <+> (hasName "a" >>> getAttrValue "href")
-                  <+> (hasName "i" /> getText >>> arr ((++"*").("*"++))))
-                 `orElse` (arr (("MOOOOOO:"++) . show))
-                )
-                -- `orElse` (proc x -> do b <- getName -< x
-                --                        returnA -< "###<" ++ b ++ ">")
+commentText ∷ ArrowXml cat ⇒ cat XmlTree [Block]
+commentText = listA $ getChildren
+              >>> listA (this <+> getChildren
+                         >>> getXPathTrees "span/font"
+                         /> par)
+              >>> arr Para
 
-          par' = proc x -> do t <- getText -< x
-                              n <- getName -< x
-                              returnA -< "C[" ++ t ++ "] N[" ++ n ++ "]"
-                             
+    where par ∷ ArrowXml cat ⇒ cat XmlTree Inline
+          par = (((getText >>> arr makeTxt)
+                  <+> (hasName "a" >>> getAttrValue "href" >>> arr makeLink)
+                  <+> (hasName "i" /> getText >>> arr makeEmph)
+                 )
+                 `orElse` (arr makeUnknownNote)
+                )
+
+          makeTxt = Str . sanitize
+          makeLink = Link [] . (, "") . sanitize
+          makeEmph = Emph . (:[]) . Str . sanitize
+          makeUnknownNote = Note . (:[]) . Para . (:[]) . Str . show
+          sanitize = unwords . words
+
 
 cc ∷ ArrowXml cat ⇒ UTCTime → cat a XmlTree → cat a Comment
 cc now doc =
     doc >>> getXPathTrees "//html/body/center/table/tr/td/table/tr/td[@class='default']"
         >>> proc x ->
-             do user ← span /> aUser  x
-                ago <- listA $ span /> getText -< x
-                id <- span /> aItemId (=="link") -< x
-                par <- span /> aItemId  (=="parent") -< x
-                story <- span /> aItemId (`notElem` ["link","parent"]) -< x
-                tt <- commentText -< x
-                returnA -< Comment user id par story (intercalate "|" tt) (parseAgo (head ago) now) Normal
+            do user ← span /> aUser ⤙ x
+               ago <- listA $ span /> getText -< x
+               id <- span /> aItemId (=="link") -< x
+               par <- span /> aItemId  (=="parent") -< x
+               story <- span /> aItemId (`notElem` ["link","parent"]) -< x
+               tt <- commentText -< x
+               returnA -< Comment user id par story tt (parseAgo (head ago) now) Normal
 
 span = getXPathTrees "//div/span"
 
