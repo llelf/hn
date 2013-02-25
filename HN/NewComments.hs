@@ -32,7 +32,7 @@ s1 = "Garageband is the app"
 s2 = "Reminds me of the Joel"
 
 showSome substr (NCPage pagecs _) = do putStrLn $ show (length cs) ++ " comments"
-                                       putStrLn $ commentToText $ head cs
+                                       print $ cText $ head cs
     where cs = filter ((substr `isInfixOf`) . commentToText) $ pagecs
 
 -- sh' file s = do p <- pp file
@@ -95,7 +95,7 @@ commentText = listA $ getChildren
               >>> listA (this <+> getChildren
                          >>> getXPathTrees "span/font"
                          /> par)
-              >>> arr Para
+              >>> (not . null) `guardsP` arr Para
 
     where par ∷ ArrowXml cat ⇒ cat XmlTree Inline
           par = (((getText >>> arr makeTxt)
