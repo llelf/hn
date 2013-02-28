@@ -5,6 +5,8 @@ module HN.NewComments (NCPage(..),Comment(..),runX,parse) where
 -- html>body>center>table> tr>td>table>tr> td[class=default]
 
 import Prelude hiding (span)
+import Prelude.Unicode
+import Control.Arrow.Unicode
 import Control.Applicative
 import Text.XML.HXT.Core
 import Text.XML.HXT.TagSoup
@@ -89,27 +91,30 @@ parseAgo s now | (sn : q : "ago" : _) <- words s = addUTCTime (negate $ fromInte
                            | "day" `isPrefixOf` x    = 60 * 60 * 24
 
 
+
 -- span>font>p>a
 commentText ∷ ArrowXml cat ⇒ cat XmlTree [Block]
 commentText = listA $ getChildren
-              >>> listA (this <+> getChildren
-                         >>> getXPathTrees "span/font"
+              ⋙ listA (this <+> getChildren
+                         ⋙ getXPathTrees "span/font"
                          /> par)
-              >>> (not . null) `guardsP` arr Para
+              ⋙ (not ∘ null) `guardsP` arr Para
 
     where par ∷ ArrowXml cat ⇒ cat XmlTree Inline
-          par = (((getText >>> arr makeTxt)
-                  <+> (hasName "a" >>> getAttrValue "href" >>> arr makeLink)
-                  <+> (hasName "i" /> getText >>> arr makeEmph)
+          par = (((getText ⋙ arr makeTxt)
+                  <+> (hasName "a" ⋙ getAttrValue "href" ⋙ arr makeLink)
+                  <+> (hasName "i" /> getText ⋙ arr makeEmph)
                  )
                  `orElse` (arr makeUnknownNote)
                 )
 
-          makeTxt = Str . sanitize
-          makeLink = Link [] . (, "") . sanitize
-          makeEmph = Emph . (:[]) . Str . sanitize
-          makeUnknownNote = Note . (:[]) . Para . (:[]) . Str . show
-          sanitize = unwords . words
+          makeTxt = Str ∘ sanitize
+          makeLink = Link [] ∘ (, "") ∘ sanitize
+          makeEmph = Emph ∘ (:[]) ∘ Str ∘ sanitize
+          makeUnknownNote = Note ∘ (:[]) ∘ Para ∘ (:[]) ∘ Str ∘ show
+          sanitize = unwords ∘ words
+
+
 
 
 cc ∷ ArrowXml cat ⇒ UTCTime → cat a XmlTree → cat a Comment
