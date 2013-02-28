@@ -1,4 +1,5 @@
-{-# LANGUAGE Arrows, NoMonomorphismRestriction, TupleSections, UnicodeSyntax #-}
+{-# LANGUAGE Arrows, NoMonomorphismRestriction, TupleSections, UnicodeSyntax,
+  OverloadedStrings #-}
 
 module HN.NewComments (NCPage(..),Comment(..),runX,parse) where
 
@@ -141,8 +142,9 @@ aItemId inside = aHrefPrefix "item" >>> getId inside
 aHrefPrefix x = hasName "a" >>> hasAttrValue "href" (x `isPrefixOf`)
 
 
-getId f = (getChildren >>> hasText f) `guards` getAttrValue "href" >>> arr (read . stripItem)
-stripItem = drop (length "item?id=")
+--getId ∷ ArrowXml cat ⇒ cat XmlTree ID
+getId f = (getChildren >>> hasText f) `guards` getAttrValue "href" >>> arr (maybe 0 read . stripItem)
+stripItem = stripPrefix ("item?id=" ∷ String)
 
 
 data SParse = Title String String | Info String deriving Show
