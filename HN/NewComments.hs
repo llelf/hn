@@ -16,6 +16,7 @@ import Text.HandsomeSoup
 --import Text.XML.HXT.DOM.FormatXmlTree
 import Data.List hiding (span)
 import Control.Monad
+import Data.Aeson
 import Data.Time
 
 import Text.Pandoc
@@ -36,6 +37,7 @@ s2 = "Reminds me of the Joel"
 
 showSome substr (NCPage pagecs _) = do putStrLn $ show (length cs) ++ " comments"
                                        print $ cText $ head cs
+                                       print $ encode $ head cs
     where cs = filter ((substr `isInfixOf`) . commentToText) $ pagecs
 
 -- sh' file s = do p <- pp file
@@ -56,6 +58,9 @@ pp file = do f <- readFile file
              return p
 
 
+--yo ∷ Comment → ByteString
+yo = encode
+
 
 pComment = getChildren >>> hasName "font" /> getText
 
@@ -64,6 +69,7 @@ type ID = Int
 data Voted = Normal | Downvoted | Dead
              deriving Show
 
+
 data AgoUnit = AgoM | AgoH | AgoD
 
 data Comment = Comment { cUser :: String, cId :: ID,
@@ -71,6 +77,12 @@ data Comment = Comment { cUser :: String, cId :: ID,
                          cTime :: UTCTime,
                          cVoted :: Voted }
                deriving Show
+
+
+instance ToJSON Comment where
+    toJSON c = object [ "user" .= cUser c, "parent" .= cParent c, "story" .= cStory c,
+                        "time" .= cTime c, "text" .= commentToText c ]
+
 
 
 commentToPandoc (Comment user _ _ _ text time _) = Pandoc (Meta [] [] []) text
@@ -114,7 +126,6 @@ commentText = listA $ getChildren
           makeEmph = Emph ∘ (:[]) ∘ Str ∘ sanitize
           makeUnknownNote = Note ∘ (:[]) ∘ Para ∘ (:[]) ∘ Str ∘ show
           sanitize = unwords ∘ words
-
 
 
 
