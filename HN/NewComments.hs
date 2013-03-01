@@ -15,7 +15,7 @@ import Text.XML.HXT.XPath
 import Text.HandsomeSoup
 --import Text.XML.HXT.DOM.FormatXmlTree
 import Data.List hiding (span)
-import Control.Monad
+import Control.Monad (join)
 import Data.Aeson
 import Data.Time
 
@@ -37,7 +37,7 @@ s2 = "Reminds me of the Joel"
 
 showSome substr (NCPage pagecs _) = do putStrLn $ show (length cs) ++ " comments"
                                        print $ cText $ head cs
-                                       print $ encode $ head cs
+                                       putStrLn $ commentToText $ head cs
     where cs = filter ((substr `isInfixOf`) . commentToText) $ pagecs
 
 -- sh' file s = do p <- pp file
@@ -108,11 +108,10 @@ parseAgo s now | (sn : q : "ago" : _) <- words s = addUTCTime (negate $ fromInte
 -- span>font>p>a
 commentText ∷ ArrowXml cat ⇒ cat XmlTree [Block]
 commentText = listA $ getChildren
-              ⋙ listA (this <+> getChildren
-                         ⋙ getXPathTrees "span/font"
-                         /> par)
-              ⋙ (not ∘ null) `guardsP` arr Para
-
+              ⋙ getXPathTrees "span/font"
+              /> listA (getChildren `when` hasName "p"
+                        ⋙ par)
+              ⋙ arr Para
     where par ∷ ArrowXml cat ⇒ cat XmlTree Inline
           par = (((getText ⋙ arr makeTxt)
                   <+> (hasName "a" ⋙ getAttrValue "href" ⋙ arr makeLink)
