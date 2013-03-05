@@ -10,10 +10,7 @@ import Prelude.Unicode
 import Control.Arrow.Unicode
 import Control.Applicative
 import Text.XML.HXT.Core
-import Text.XML.HXT.TagSoup
-import Text.XML.HXT.XPath
 import Text.HandsomeSoup
---import Text.XML.HXT.DOM.FormatXmlTree
 import Data.List hiding (span)
 import Control.Monad (join)
 import Data.Aeson
@@ -21,14 +18,11 @@ import Data.Time
 
 import Text.Pandoc
 
+import HN.Parsing
 
-xpath = getXPathTrees
 
 doc = readDocument opts "nc-fmt.html"
-doc' = readDocument opts "../newest.html"
 
-
-opts = [ withWarnings False, withParseHTML True, withTagSoup ]
 
 data NCPage = NCPage [Comment] String deriving Show
 
@@ -108,7 +102,7 @@ parseAgo s now | (sn : q : "ago" : _) <- words s = addUTCTime (negate $ fromInte
 -- span>font>p>a
 commentText ∷ ArrowXml cat ⇒ cat XmlTree [Block]
 commentText = listA $ getChildren
-              ⋙ getXPathTrees "span/font"
+              ⋙ xpath "span/font"
               /> listA (getChildren `when` hasName "p"
                         ⋙ par)
               ⋙ arr Para
@@ -130,7 +124,7 @@ commentText = listA $ getChildren
 
 cc ∷ ArrowXml cat ⇒ UTCTime → cat a XmlTree → cat a Comment
 cc now doc =
-    doc >>> getXPathTrees "//html/body/center/table/tr/td/table/tr/td[@class='default']"
+    doc >>> xpath "//html/body/center/table/tr/td/table/tr/td[@class='default']"
         >>> proc x ->
             do user ← span /> aUser ⤙ x
                ago <- listA $ span /> getText -< x
@@ -140,41 +134,10 @@ cc now doc =
                tt <- commentText -< x
                returnA -< Comment user id par story tt (parseAgo (head ago) now) Normal
 
-span = getXPathTrees "//div/span"
+span = xpath "//div/span"
 
 next doc = doc //> hasName "td" >>> hasAttrValue "class" (=="title")
            /> aHrefPrefix "/x?fnid" >>> getAttrValue "href"
 
-
-aUser = aHrefPrefix "user" /> getText
-
-aItemId inside = aHrefPrefix "item" >>> getId inside
-aHrefPrefix x = hasName "a" >>> hasAttrValue "href" (x `isPrefixOf`)
-
-
---getId ∷ ArrowXml cat ⇒ cat XmlTree ID
-getId f = (getChildren >>> hasText f) `guards` getAttrValue "href" >>> arr (maybe 0 read . stripItem)
-stripItem = stripPrefix ("item?id=" ∷ String)
-
-
-data SParse = Title String String | Info String deriving Show
-
-nn = doc' /> hasName "html" /> hasName "body" /> hasName "center" /> hasName "table"
-     /> hasName "tr" /> hasName "td" /> hasName "table" /> hasName "tr" >>> title <+> info
-    where td = getChildren >>> hasName "td"
-          title = proc x ->
-                  do a <- td >>> hasAttrValue "class" (=="title") /> hasName "a" -< x
-                     link <- getAttrValue "href" -< a
-                     title <- getChildren >>> getText -< a
-                     returnA -< Title link title
-          info  = proc x ->
-                  do sub <- td >>> hasAttrValue "class" (=="subtext") -< x
-                     user <- getChildren >>> aUser -< sub
-                     returnA -< Info user
-
-
-tcc = do t <- getCurrentTime
-         e <- runX $ cc t doc
-         return $ last e
 
 
