@@ -15,6 +15,7 @@ import Control.Applicative
 import Text.XML.HXT.Core
 import Text.HandsomeSoup
 import Data.List hiding (span)
+import Data.List.Split
 import Control.Monad (join)
 import Data.Aeson
 import Data.Time
@@ -101,14 +102,18 @@ parseAgo s now | (sn : q : "ago" : _) <- words s = addUTCTime (negate $ fromInte
                            | "day" `isPrefixOf` x    = 60 * 60 * 24
 
 
+data CT = CTPar | CTIn { unCT :: Inline } deriving Eq
 
--- span>font>p>a
 commentText ∷ ArrowXml cat ⇒ cat XmlTree [Block]
-commentText = listA $ getChildren
-              ⋙ xpath "span/font"
-              /> listA (getChildren `when` hasName "p"
-                        ⋙ par)
-              ⋙ arr Para
+commentText = listA (getChildren
+                     ⋙ xpath "span/font"
+                     ⋙ listA (getChildren
+                              ⋙ ((hasName "p" ⋙ constA CTPar)
+                                 <+> (hasName "p" /> par >>^ CTIn)
+                                 `orElse` (par >>^ CTIn)))
+                    >>^ (map (Para ∘ map unCT) ∘ splitOn [CTPar]))
+              >>^ concat
+
     where par ∷ ArrowXml cat ⇒ cat XmlTree Inline
           par = (((getText >>^ makeTxt)
                   <+> (hasName "a" ⋙ getAttrValue "href" >>^ makeLink)
