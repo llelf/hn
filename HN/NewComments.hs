@@ -1,7 +1,10 @@
 {-# LANGUAGE Arrows, NoMonomorphismRestriction, TupleSections, UnicodeSyntax,
   OverloadedStrings #-}
 
-module HN.NewComments (NCPage(..),Comment(..),runX,parse) where
+module HN.NewComments (NCPage(..),
+                       Comment(..), commentToText,
+                       runX, parse)
+    where
 
 -- html>body>center>table> tr>td>table>tr> td[class=default]
 
