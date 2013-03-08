@@ -110,9 +110,9 @@ commentText = listA $ getChildren
                         ⋙ par)
               ⋙ arr Para
     where par ∷ ArrowXml cat ⇒ cat XmlTree Inline
-          par = (((getText ⋙ arr makeTxt)
-                  <+> (hasName "a" ⋙ getAttrValue "href" ⋙ arr makeLink)
-                  <+> (hasName "i" /> getText ⋙ arr makeEmph)
+          par = (((getText >>^ makeTxt)
+                  <+> (hasName "a" ⋙ getAttrValue "href" >>^ makeLink)
+                  <+> (hasName "i" /> getText >>^ makeEmph)
                  )
                  `orElse` (arr makeUnknownNote)
                 )
