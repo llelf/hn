@@ -121,7 +121,7 @@ commentText = listA $ getChildren
           makeLink = Link [] ∘ (, "") ∘ sanitize
           makeEmph = Emph ∘ (:[]) ∘ Str ∘ sanitize
           makeUnknownNote = Note ∘ (:[]) ∘ Para ∘ (:[]) ∘ Str ∘ show
-          sanitize = unwords ∘ words
+          sanitize = id
 
 
 
