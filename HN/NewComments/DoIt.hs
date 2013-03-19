@@ -16,8 +16,11 @@ ini = do resp <- simpleHttp url
 
 
 boo = do resp <- simpleHttp url
---         r <- responseBody resp
          now <- getCurrentTime
-         NCPage cc next <- parse now $ unpack resp
-         storeComments cc
---         return cc
+         NCPage cc next <- parse now $ BC.unpack resp
+         topId <- DB.topStored
+         let news = filter ((>topId) . cId) cc
+         print $ length news
+         DB.storeComments news
+
+
