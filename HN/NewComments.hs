@@ -62,7 +62,7 @@ yo = encode
 
 pComment = getChildren >>> hasName "font" /> getText
 
-type ID = Int
+type ID = Integer
 
 data Voted = Normal | Downvoted | Dead
              deriving Show
