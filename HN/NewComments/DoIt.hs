@@ -2,20 +2,17 @@ module HN.NewComments.DoIt where
 
 import HN.NewComments
 import HN.NewComments.DB
---import Network.HTTP.Conduit
-import Network.HTTP
+import Network.HTTP.Conduit
+import Data.ByteString.Lazy.Char8
 import Data.Time
 
 
+url = "https://news.ycombinator.com/newcomments"
 
-url = "http://news.ycombinator.com/newcomments"
 
-
-boo = do resp <- simpleHTTP (getRequest url)
-         r <- getResponseBody resp
+boo = do resp <- simpleHttp url
+--         r <- responseBody resp
          now <- getCurrentTime
-         NCPage cc next <- parse now r
---         storeComments cc
-         return cc
-
-
+         NCPage cc next <- parse now $ unpack resp
+         storeComments cc
+--         return cc
