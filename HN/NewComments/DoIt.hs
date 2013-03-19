@@ -11,7 +11,7 @@ url = "https://news.ycombinator.com/newcomments"
 
 storeSome which resp = do now <- getCurrentTime
                           NCPage cc next <- parse now $ BC.unpack resp
-                          let news = filter which cc
+                          let news = reverse . filter which $ cc
                           print $ length news
                           DB.storeComments news
 
