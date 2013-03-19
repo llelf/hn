@@ -1,9 +1,9 @@
 module HN.NewComments.DoIt where
 
 import HN.NewComments
-import HN.NewComments.DB
+import qualified HN.NewComments.DB as DB
 import Network.HTTP.Conduit
-import Data.ByteString.Lazy.Char8
+import qualified Data.ByteString.Lazy.Char8 as BC
 import Data.Time
 
 
