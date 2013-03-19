@@ -1,5 +1,5 @@
 {-# LANGUAGE UnicodeSyntax #-}
-module HN.NewComments.DB where
+module HN.NewComments.DB (topStored, storeComments) where
 
 import Database.HDBC.PostgreSQL
 import Database.HDBC
