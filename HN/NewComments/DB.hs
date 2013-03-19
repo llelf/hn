@@ -22,8 +22,12 @@ storeComments comms = do conn ← connection
                          forM_ comms (ins conn)
                          commit conn
                          disconnect conn
-    where ins conn c = run conn "insert into comments (id,data) values (?,?)"
-                       [toSql (cId c), toSql (encode c)]
+    where ins conn c = run conn "insert into comments1 \
+                                \ (time,\"user\",hn_id,parent,story,text) \
+                                \ values (?,?,?,?,?,?)"
+                       [toSql (cTime c), toSql (cUser c), toSql (cId c),
+                        toSql (cParent c), toSql (cStory c),
+                        toSql (commentToText c)]
 
               
 
