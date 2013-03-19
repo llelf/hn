@@ -13,7 +13,7 @@ connection = connectPostgreSQL "dbname=hn"
 
 topStored ∷ IO Integer
 topStored = do conn ← connection
-               [[r]] ← quickQuery conn "select id from comments order by id limit 1" []
+               [[r]] ← quickQuery conn "select hn_id from comments1 order by id limit 1" []
                return (fromSql r)
 
 
