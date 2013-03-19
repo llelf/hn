@@ -9,18 +9,17 @@ import Data.Time
 
 url = "https://news.ycombinator.com/newcomments"
 
+storeSome which resp = do now <- getCurrentTime
+                          NCPage cc next <- parse now $ BC.unpack resp
+                          let news = filter which cc
+                          print $ length news
+                          DB.storeComments news
+
 ini = do resp <- simpleHttp url
-         now <- getCurrentTime
-         NCPage cc next <- parse now $ BC.unpack resp
-         DB.storeComments cc
+         storeSome (const True) resp
 
 
 boo = do resp <- simpleHttp url
-         now <- getCurrentTime
-         NCPage cc next <- parse now $ BC.unpack resp
          topId <- DB.topStored
-         let news = filter ((>topId) . cId) cc
-         print $ length news
-         DB.storeComments news
-
+         storeSome ((>topId) . cId) resp
 
