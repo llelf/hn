@@ -17,7 +17,11 @@ cabal-version:       >=1.8
 library
   -- main-is:             
   -- other-modules:       
-  build-depends:       base, time, HDBC, HTTP==2.3.1.2
+  build-depends:       base, time, HDBC, HTTP,
+                       http-conduit, hxt, hxt-tagsoup
 
 
-
+executable nc
+  main-is: HN/NewComments/DoIt.hs
+  build-depends:  base, hslogger, time, bytestring, http-conduit, aeson, hxt-tagsoup, hxt-xpath,
+                  hxt, pandoc, split, HandsomeSoup, base-unicode-symbols, HDBC, HDBC-postgresql
