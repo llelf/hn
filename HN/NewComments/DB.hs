@@ -1,5 +1,5 @@
 {-# LANGUAGE UnicodeSyntax #-}
-module HN.NewComments.DB (topStored, storeComments) where
+module HN.NewComments.DB (topStored, storeComments, query) where
 
 import Database.HDBC.PostgreSQL
 import Database.HDBC
@@ -9,6 +9,10 @@ import Data.Aeson
 
 connection ∷ IO Connection
 connection = connectPostgreSQL "dbname=hn"
+
+
+query ∷ String → [SqlValue] → IO [[SqlValue]]
+query q xs = connection >>= \c -> quickQuery c q xs
 
 
 topStored ∷ IO Integer
