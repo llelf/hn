@@ -1,7 +1,6 @@
 {-# LANGUAGE OverloadedStrings, UnicodeSyntax, Arrows, TupleSections #-}
 module HN.Comment (Comment(..), commentToText, cc) where
 
-import Prelude hiding (span)
 import Prelude.Unicode
 import Data.Aeson
 import Data.Time
