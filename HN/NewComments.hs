@@ -56,8 +56,6 @@ pp file = do f <- readFile file
 
 
 
-pComment = getChildren >>> hasName "font" /> getText
-
 
 next doc = doc //> hasName "td" >>> hasAttrValue "class" (=="title")
            /> aHrefPrefix "/x?fnid" >>> getAttrValue "href"
