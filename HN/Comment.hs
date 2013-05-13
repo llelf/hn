@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings, UnicodeSyntax, Arrows, TupleSections #-}
-module HN.Comment (Comment(..), commentToText, cc) where
+module HN.Comment (Comment(..), commentToText, parseComment) where
 
 import Prelude.Unicode
 import Data.Aeson
@@ -51,8 +51,8 @@ parseAgo s now
 
 
 
-cc ∷ ArrowXml cat ⇒ UTCTime → cat a XmlTree → cat a Comment
-cc now doc =
+parseComment ∷ ArrowXml cat ⇒ UTCTime → cat a XmlTree → cat a Comment
+parseComment now doc =
     doc >>> xpath "//html/body/center/table/tr/td/table/tr/td[@class='default']"
         >>> proc x ->
             do user ← spanEl /> aUser ⤙ x

@@ -45,7 +45,7 @@ sh file s = join $ showSome s <$> pp file
 
 parse :: UTCTime -> String -> IO NCPage
 parse now s = do let doc = readString opts s
-                 comms <- runX $ cc now doc
+                 comms <- runX $ parseComment now doc
                  --[nxt] <- runX $ next doc
                  return $ NCPage comms ""
 
