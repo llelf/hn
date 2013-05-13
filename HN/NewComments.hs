@@ -7,18 +7,11 @@ module HN.NewComments (NCPage(..),
 
 -- html>body>center>table> tr>td>table>tr> td[class=default]
 
-import Prelude hiding (span)
 import Prelude.Unicode
-import Control.Arrow.Unicode
 import Control.Applicative
-import Text.XML.HXT.Core
-import Text.HandsomeSoup
-import Data.List hiding (span)
-import Data.List.Split
+import Data.List
 import Control.Monad (join)
-import Data.Aeson
 import Data.Time
-import Text.Pandoc
 
 import HN.Parsing
 import HN.Comment
