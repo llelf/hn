@@ -1,11 +1,13 @@
 {-# LANGUAGE UnicodeSyntax #-}
 module HN.Parsing (aUser, xpath, aItemId, aHrefPrefix, opts,
-                   module Text.XML.HXT.Core)
+                   module Text.XML.HXT.Core,
+                   module Control.Arrow.Unicode)
     where
 
 import Text.XML.HXT.Core
 import Text.XML.HXT.XPath
 import Text.XML.HXT.TagSoup
+import Control.Arrow.Unicode
 import Data.List
 import Data.String
 
