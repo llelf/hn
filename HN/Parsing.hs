@@ -1,5 +1,6 @@
 {-# LANGUAGE UnicodeSyntax #-}
-module HN.Parsing (aUser, xpath, aItemId, aHrefPrefix, opts)
+module HN.Parsing (aUser, xpath, aItemId, aHrefPrefix, opts,
+                   module Text.XML.HXT.Core)
     where
 
 import Text.XML.HXT.Core
