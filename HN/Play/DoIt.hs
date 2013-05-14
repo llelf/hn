@@ -1,12 +1,14 @@
-module HN.NewComments.DoIt where
+module HN.Play.DoIt where
 
-import HN.NewComments
-import qualified HN.NewComments.DB as DB
 import Network.HTTP.Conduit
 import qualified Data.ByteString.Lazy.Char8 as BC
 import Data.Time
 import Data.Time.Format
 import System.Locale
+
+import qualified HN.Play.DB as DB
+import HN.NewComments
+
 
 url = "https://news.ycombinator.com/newcomments"
 
