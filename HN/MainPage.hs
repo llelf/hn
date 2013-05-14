@@ -1,14 +1,13 @@
 {-# LANGUAGE Arrows #-}
 module HN.MainPage where
 
-import Text.XML.HXT.Core
-import Text.XML.HXT.TagSoup
 import HN.Parsing
+
 
 data SParse = Title String String | Info String deriving Show
 
 doc' = readDocument opts "../newest.html"
-opts = [ withWarnings False, withParseHTML True, withTagSoup ]
+
 
 nn = doc' /> hasName "html" /> hasName "body" /> hasName "center" /> hasName "table"
      /> hasName "tr" /> hasName "td" /> hasName "table" /> hasName "tr" >>> title <+> info
