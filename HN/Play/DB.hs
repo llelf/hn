@@ -18,6 +18,7 @@ query q xs = connection >>= \c -> quickQuery c q xs
 topStored ∷ IO Integer
 topStored = do conn ← connection
                [[r]] ← quickQuery conn "select hn_id from comments1 order by hn_id desc limit 1" []
+               disconnect conn
                return (fromSql r)
 
 
