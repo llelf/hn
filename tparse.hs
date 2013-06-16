@@ -44,10 +44,17 @@ insert c (Object o) = quickQuery c q fs
                    | otherwise           = error $ show (f o)
 
 
+
+
+insert' c (Object o) = quickQuery c "insert into thrift1 values (?,?)"
+                       [toSql id, toSql $ encode o]
+    where Number (I id) = o ! "id"
+
+
 main = do j <- B.getContents
           c <- connectPostgreSQL "dbname=hn"
           let Just a = parse j
           let Array rs = a ! "results"
-          V.forM_ rs $ \(Object r) -> insert c (r ! "item")
+          V.forM_ rs $ \(Object r) -> insert' c (r ! "item")
           commit c
 
