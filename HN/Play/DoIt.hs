@@ -12,8 +12,19 @@ import HN.NewComments
 
 url = "https://news.ycombinator.com/newcomments"
 
+
+
+
+
+
+
+
+
+{-
 syslog s = do t <- getCurrentTime
               appendFile "log" (formatTime defaultTimeLocale "%c" t ++ " " ++ s ++ "\n")
+
+
 
 
 storeSome which resp = do now <- getCurrentTime
@@ -30,4 +41,8 @@ ini = do resp <- simpleHttp url
 boo = do resp <- simpleHttp url
          topId <- DB.topStored
          storeSome ((>topId) . cId) resp
+
+main = boo
+-}
+
 
